@@ -2,10 +2,10 @@
 
 ###########################################
 #  Wix Scraper - One Click Installer      #
-#  For Ubuntu 22.04/24.04 VPS             #
+#  For Ubuntu 20.04/22.04/24.04 VPS       #
 ###########################################
 
-set -e
+# DO NOT use set -e - we handle errors manually
 
 # Colors
 RED='\033[0;31m'
@@ -15,104 +15,194 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-clear
-echo -e "${CYAN}"
-echo "╔═══════════════════════════════════════════════════════════════╗"
-echo "║                                                               ║"
-echo "║           🌐 WIX SCRAPER - ONE CLICK INSTALLER 🌐             ║"
-echo "║                                                               ║"
-echo "║       Convert Wix websites to offline HTML sites              ║"
-echo "║                                                               ║"
-echo "╚═══════════════════════════════════════════════════════════════╝"
-echo -e "${NC}"
-echo ""
+print_header() {
+    clear
+    echo -e "${CYAN}"
+    echo "╔═══════════════════════════════════════════════════════════════╗"
+    echo "║                                                               ║"
+    echo "║           🌐 WIX SCRAPER - ONE CLICK INSTALLER 🌐             ║"
+    echo "║                                                               ║"
+    echo "║       Convert Wix websites to offline HTML sites              ║"
+    echo "║                                                               ║"
+    echo "╚═══════════════════════════════════════════════════════════════╝"
+    echo -e "${NC}"
+    echo ""
+}
+
+print_step() {
+    echo ""
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${YELLOW}$1${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+}
+
+print_success() {
+    echo -e "${GREEN}✓ $1${NC}"
+}
+
+print_error() {
+    echo -e "${RED}✗ $1${NC}"
+}
+
+# Start
+print_header
 
 # Check if running as root
 if [ "$EUID" -ne 0 ]; then 
-    echo -e "${RED}❌ Please run as root: sudo bash install.sh${NC}"
+    print_error "Please run as root: sudo bash install.sh"
     exit 1
 fi
 
 # Get server IP
 echo -e "${YELLOW}⏳ Detecting server IP...${NC}"
-SERVER_IP=$(curl -s -4 ifconfig.me 2>/dev/null || curl -s -4 icanhazip.com 2>/dev/null || hostname -I | awk '{print $1}')
-echo -e "${GREEN}✓ Server IP: ${SERVER_IP}${NC}"
-echo ""
+SERVER_IP=$(curl -s -4 --max-time 10 ifconfig.me 2>/dev/null)
+if [ -z "$SERVER_IP" ]; then
+    SERVER_IP=$(curl -s -4 --max-time 10 icanhazip.com 2>/dev/null)
+fi
+if [ -z "$SERVER_IP" ]; then
+    SERVER_IP=$(hostname -I | awk '{print $1}')
+fi
+if [ -z "$SERVER_IP" ]; then
+    SERVER_IP="YOUR_SERVER_IP"
+fi
+print_success "Server IP: ${SERVER_IP}"
 
-# Step 1: Update system
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW}[1/8] 📦 Updating system packages...${NC}"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+###########################################
+# STEP 1: Update system
+###########################################
+print_step "[1/8] 📦 Updating system packages..."
+
 export DEBIAN_FRONTEND=noninteractive
-apt-get update -qq
-apt-get upgrade -y -qq
-echo -e "${GREEN}✓ System updated${NC}"
-echo ""
+apt-get update -y
+if [ $? -eq 0 ]; then
+    print_success "System updated"
+else
+    print_error "Failed to update system, continuing anyway..."
+fi
 
-# Step 2: Install system dependencies
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW}[2/8] 🔧 Installing system dependencies...${NC}"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-apt-get install -y python3 python3-pip python3-venv git nginx curl wget unzip \
-    libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
-    libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
-    libgbm1 libasound2t64 libpango-1.0-0 libcairo2 libatspi2.0-0 \
-    libgtk-3-0 libx11-xcb1 libxcb1 libxcursor1 \
-    libxi6 libxtst6 fonts-liberation xdg-utils 2>/dev/null || \
-apt-get install -y python3 python3-pip python3-venv git nginx curl wget unzip \
-    libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
-    libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
-    libgbm1 libasound2 libpango-1.0-0 libcairo2 libatspi2.0-0 \
-    libgtk-3-0 libx11-xcb1 libxcb1 libxcursor1 \
-    libxi6 libxtst6 fonts-liberation xdg-utils
-echo -e "${GREEN}✓ Dependencies installed${NC}"
-echo ""
+###########################################
+# STEP 2: Install basic packages
+###########################################
+print_step "[2/8] 🔧 Installing basic packages..."
 
-# Step 3: Clean up old installation
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW}[3/8] 🧹 Preparing installation directory...${NC}"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+apt-get install -y python3 python3-pip python3-venv git nginx curl wget unzip
+if [ $? -eq 0 ]; then
+    print_success "Basic packages installed"
+else
+    print_error "Some packages failed, trying alternatives..."
+fi
+
+###########################################
+# STEP 3: Install Playwright dependencies
+###########################################
+print_step "[3/8] 🔧 Installing browser dependencies..."
+
+# Try to install common dependencies - ignore errors for missing packages
+apt-get install -y \
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libpango-1.0-0 \
+    libcairo2 \
+    libatspi2.0-0 \
+    libx11-xcb1 \
+    libxcb1 \
+    libxcursor1 \
+    libxi6 \
+    libxtst6 \
+    fonts-liberation \
+    xdg-utils \
+    2>/dev/null || true
+
+# Try libasound2 (Ubuntu 22.04 and earlier)
+apt-get install -y libasound2 2>/dev/null || true
+
+# Try libasound2t64 (Ubuntu 24.04)
+apt-get install -y libasound2t64 2>/dev/null || true
+
+# Try libgtk packages
+apt-get install -y libgtk-3-0 2>/dev/null || true
+apt-get install -y libgtk-3-0t64 2>/dev/null || true
+
+print_success "Browser dependencies installed"
+
+###########################################
+# STEP 4: Clean up old installation
+###########################################
+print_step "[4/8] 🧹 Preparing installation directory..."
+
 systemctl stop wixscraper 2>/dev/null || true
-rm -rf /opt/wix-scraper
-echo -e "${GREEN}✓ Directory ready${NC}"
-echo ""
+systemctl disable wixscraper 2>/dev/null || true
+rm -rf /opt/wix-scraper 2>/dev/null || true
 
-# Step 4: Clone repository
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW}[4/8] 📥 Downloading Wix Scraper...${NC}"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-git clone --depth 1 https://github.com/moha-aamir/Wix-Scraper.git /opt/wix-scraper > /dev/null 2>&1
+print_success "Directory ready"
+
+###########################################
+# STEP 5: Clone repository
+###########################################
+print_step "[5/8] 📥 Downloading Wix Scraper..."
+
+git clone --depth 1 https://github.com/moha-aamir/Wix-Scraper.git /opt/wix-scraper
+if [ $? -ne 0 ]; then
+    print_error "Failed to clone repository"
+    exit 1
+fi
 cd /opt/wix-scraper
-echo -e "${GREEN}✓ Downloaded${NC}"
-echo ""
+print_success "Downloaded"
 
-# Step 5: Setup Python environment
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW}[5/8] 🐍 Setting up Python environment...${NC}"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+###########################################
+# STEP 6: Setup Python environment
+###########################################
+print_step "[6/8] 🐍 Setting up Python environment..."
+
 python3 -m venv venv
+if [ $? -ne 0 ]; then
+    print_error "Failed to create virtual environment"
+    exit 1
+fi
+
 source venv/bin/activate
-pip install --upgrade pip -q
-pip install -r requirements.txt -q
-pip install gunicorn -q
-echo -e "${GREEN}✓ Python environment ready${NC}"
-echo ""
 
-# Step 6: Install Playwright
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW}[6/8] 🌐 Installing browser (this takes 2-5 minutes)...${NC}"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-pip install playwright -q
-playwright install chromium 2>&1 | grep -E "(Downloading|chromium)" || true
-playwright install-deps chromium > /dev/null 2>&1 || true
-echo -e "${GREEN}✓ Browser installed${NC}"
-echo ""
+pip install --upgrade pip
+pip install wheel setuptools
 
-# Step 7: Create systemd service
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW}[7/8] ⚙️  Creating system service...${NC}"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-cat > /etc/systemd/system/wixscraper.service << 'SERVICEEOF'
+echo "Installing Flask and dependencies..."
+pip install flask werkzeug requests pillow gunicorn
+
+echo "Installing Playwright..."
+pip install playwright
+
+print_success "Python environment ready"
+
+###########################################
+# STEP 7: Install Playwright browser
+###########################################
+print_step "[7/8] 🌐 Installing Chromium browser (this takes 2-5 minutes)..."
+
+# Install playwright browsers
+playwright install chromium
+
+# Install system deps for playwright (may require sudo, but we're root)
+playwright install-deps chromium 2>/dev/null || true
+
+print_success "Browser installed"
+
+###########################################
+# STEP 8: Create systemd service
+###########################################
+print_step "[8/8] ⚙️  Creating system service and configuring Nginx..."
+
+# Create systemd service file
+cat > /etc/systemd/system/wixscraper.service << 'EOF'
 [Unit]
 Description=Wix Scraper Web Application
 After=network.target
@@ -122,26 +212,25 @@ Type=simple
 User=root
 WorkingDirectory=/opt/wix-scraper
 Environment="PATH=/opt/wix-scraper/venv/bin:/usr/local/bin:/usr/bin:/bin"
-Environment="PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright"
 ExecStart=/opt/wix-scraper/venv/bin/gunicorn --workers 2 --bind 127.0.0.1:8080 --timeout 300 app:app
 Restart=always
 RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
-SERVICEEOF
+EOF
 
+# Reload systemd
 systemctl daemon-reload
-systemctl enable wixscraper > /dev/null 2>&1
-systemctl start wixscraper
-echo -e "${GREEN}✓ Service created and started${NC}"
-echo ""
 
-# Step 8: Configure Nginx
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW}[8/8] 🔀 Configuring web server...${NC}"
-echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-cat > /etc/nginx/sites-available/wixscraper << 'NGINXEOF'
+# Enable and start service
+systemctl enable wixscraper
+systemctl start wixscraper
+
+print_success "Service created"
+
+# Configure Nginx
+cat > /etc/nginx/sites-available/wixscraper << 'EOF'
 server {
     listen 80;
     server_name _;
@@ -163,17 +252,25 @@ server {
         proxy_cache_bypass $http_upgrade;
     }
 }
-NGINXEOF
+EOF
 
-rm -f /etc/nginx/sites-enabled/default
+# Enable Nginx site
+rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
 ln -sf /etc/nginx/sites-available/wixscraper /etc/nginx/sites-enabled/
-nginx -t > /dev/null 2>&1
-systemctl restart nginx
-echo -e "${GREEN}✓ Web server configured${NC}"
-echo ""
 
+# Test and restart Nginx
+nginx -t
+if [ $? -eq 0 ]; then
+    systemctl restart nginx
+    print_success "Nginx configured"
+else
+    print_error "Nginx configuration error"
+fi
+
+###########################################
 # Create management command
-cat > /usr/local/bin/wixscraper << 'CMDEOF'
+###########################################
+cat > /usr/local/bin/wixscraper << 'EOF'
 #!/bin/bash
 case "$1" in
     status)
@@ -199,7 +296,7 @@ case "$1" in
         cd /opt/wix-scraper
         git pull
         source venv/bin/activate
-        pip install -r requirements.txt -q
+        pip install -r requirements.txt
         systemctl restart wixscraper
         echo "✓ Wix Scraper updated!"
         ;;
@@ -230,46 +327,60 @@ case "$1" in
         echo ""
         ;;
 esac
-CMDEOF
+EOF
 chmod +x /usr/local/bin/wixscraper
 
-# Wait for service to start
+###########################################
+# Final check and display result
+###########################################
+echo ""
+echo ""
 sleep 3
 
-# Check if service is running
-SERVICE_STATUS=$(systemctl is-active wixscraper 2>/dev/null || echo "failed")
+SERVICE_STATUS=$(systemctl is-active wixscraper 2>/dev/null || echo "inactive")
 
-echo ""
-echo ""
 if [ "$SERVICE_STATUS" = "active" ]; then
-    echo -e "${GREEN}╔═══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${GREEN}║                                                               ║${NC}"
-    echo -e "${GREEN}║          ✅ INSTALLATION SUCCESSFUL!                          ║${NC}"
-    echo -e "${GREEN}║                                                               ║${NC}"
-    echo -e "${GREEN}╠═══════════════════════════════════════════════════════════════╣${NC}"
-    echo -e "${GREEN}║                                                               ║${NC}"
-    echo -e "${GREEN}║  🌐 Your Wix Scraper is ready at:                             ║${NC}"
-    echo -e "${GREEN}║                                                               ║${NC}"
-    echo -e "${CYAN}║     👉  http://${SERVER_IP}${NC}"
-    echo -e "${GREEN}║                                                               ║${NC}"
-    echo -e "${GREEN}╠═══════════════════════════════════════════════════════════════╣${NC}"
-    echo -e "${GREEN}║                                                               ║${NC}"
-    echo -e "${GREEN}║  📋 Management Commands:                                      ║${NC}"
-    echo -e "${GREEN}║                                                               ║${NC}"
-    echo -e "${GREEN}║     wixscraper status   - Check status                        ║${NC}"
-    echo -e "${GREEN}║     wixscraper logs     - View logs                           ║${NC}"
-    echo -e "${GREEN}║     wixscraper restart  - Restart app                         ║${NC}"
-    echo -e "${GREEN}║     wixscraper update   - Update to latest                    ║${NC}"
-    echo -e "${GREEN}║     wixscraper uninstall - Remove app                         ║${NC}"
-    echo -e "${GREEN}║                                                               ║${NC}"
-    echo -e "${GREEN}╚═══════════════════════════════════════════════════════════════╝${NC}"
+    echo -e "${GREEN}"
+    echo "╔═══════════════════════════════════════════════════════════════╗"
+    echo "║                                                               ║"
+    echo "║          ✅ INSTALLATION SUCCESSFUL!                          ║"
+    echo "║                                                               ║"
+    echo "╠═══════════════════════════════════════════════════════════════╣"
+    echo "║                                                               ║"
+    echo "║  🌐 Your Wix Scraper is ready at:                             ║"
+    echo "║                                                               ║"
+    echo -e "║     👉  ${CYAN}http://${SERVER_IP}${GREEN}                                     "
+    echo "║                                                               ║"
+    echo "╠═══════════════════════════════════════════════════════════════╣"
+    echo "║                                                               ║"
+    echo "║  📋 Management Commands:                                      ║"
+    echo "║                                                               ║"
+    echo "║     wixscraper status   - Check status                        ║"
+    echo "║     wixscraper logs     - View logs                           ║"
+    echo "║     wixscraper restart  - Restart app                         ║"
+    echo "║     wixscraper update   - Update to latest                    ║"
+    echo "║     wixscraper uninstall - Remove app                         ║"
+    echo "║                                                               ║"
+    echo "╚═══════════════════════════════════════════════════════════════╝"
+    echo -e "${NC}"
 else
-    echo -e "${RED}╔═══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${RED}║  ❌ Service failed to start. Checking logs...                 ║${NC}"
-    echo -e "${RED}╚═══════════════════════════════════════════════════════════════╝${NC}"
+    echo -e "${RED}"
+    echo "╔═══════════════════════════════════════════════════════════════╗"
+    echo "║  ⚠️  Service may not have started properly                    ║"
+    echo "╚═══════════════════════════════════════════════════════════════╝"
+    echo -e "${NC}"
     echo ""
-    journalctl -u wixscraper -n 20 --no-pager
+    echo "Checking service status..."
+    systemctl status wixscraper --no-pager -l
     echo ""
-    echo -e "${YELLOW}Try running: wixscraper logs${NC}"
+    echo "Recent logs:"
+    journalctl -u wixscraper -n 30 --no-pager
+    echo ""
+    echo -e "${YELLOW}Try these commands to debug:${NC}"
+    echo "  wixscraper logs"
+    echo "  wixscraper restart"
+    echo ""
+    echo -e "${CYAN}Your app might still work at: http://${SERVER_IP}${NC}"
 fi
+
 echo ""
