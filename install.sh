@@ -212,7 +212,7 @@ Type=simple
 User=root
 WorkingDirectory=/opt/wix-scraper
 Environment="PATH=/opt/wix-scraper/venv/bin:/usr/local/bin:/usr/bin:/bin"
-ExecStart=/opt/wix-scraper/venv/bin/gunicorn --workers 2 --bind 127.0.0.1:8080 --timeout 300 app:app
+ExecStart=/opt/wix-scraper/venv/bin/gunicorn --workers 1 --threads 4 --bind 127.0.0.1:8080 --timeout 300 app:app
 Restart=always
 RestartSec=5
 

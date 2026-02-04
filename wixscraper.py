@@ -654,7 +654,15 @@ async def scrape_wix_site(site, blockPrimaryFolder='', wait=3, recursive=False, 
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=True,
-            args=['--no-sandbox', '--disable-setuid-sandbox']
+            args=[
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--disable-extensions',
+                '--disable-software-rasterizer',
+                '--single-process'
+            ]
         )
         
         page = await browser.new_page(viewport={'width': 1920, 'height': 1080})
