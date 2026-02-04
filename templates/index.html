@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wix to Offline Converter</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        
+        .navbar {
+            background: rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-section {
+            padding: 80px 0;
+            text-align: center;
+        }
+        
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+        
+        .converter-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .form-control, .form-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-radius: 10px;
+            padding: 12px 16px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #667eea;
+            color: #fff;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+        }
+        
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .form-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 10px;
+            padding: 14px 32px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 14px 32px;
+            font-weight: 600;
+        }
+        
+        .form-check-input {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .form-check-input:checked {
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+        
+        .accordion {
+            --bs-accordion-bg: transparent;
+            --bs-accordion-border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .accordion-item {
+            background: transparent;
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .accordion-button {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+        
+        .accordion-button:not(.collapsed) {
+            background: rgba(102, 126, 234, 0.2);
+            color: #fff;
+        }
+        
+        .accordion-button::after {
+            filter: invert(1);
+        }
+        
+        .accordion-body {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .progress-section {
+            display: none;
+            margin-top: 30px;
+        }
+        
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            background: var(--primary-gradient);
+            animation: progress-animation 2s ease-in-out infinite;
+        }
+        
+        @keyframes progress-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .log-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            margin-top: 15px;
+        }
+        
+        .log-entry {
+            color: #38ef7d;
+            margin-bottom: 5px;
+        }
+        
+        .log-entry.error {
+            color: #f5576c;
+        }
+        
+        .result-section {
+            display: none;
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .success-icon {
+            font-size: 4rem;
+            color: #38ef7d;
+            margin-bottom: 1rem;
+        }
+        
+        .features-section {
+            padding: 60px 0;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .feature-desc {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+        
+        .footer {
+            padding: 30px 0;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .spinner-border {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            .converter-card {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-cloud-download me-2"></i>Wix to Offline Converter
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <h1 class="hero-title">Convert Wix Websites to Offline Files</h1>
+            <p class="hero-subtitle">
+                Download your Wix website as a fully functional offline copy with optimized images, 
+                local fonts, and improved performance.
+            </p>
+            
+            <!-- Converter Card -->
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="converter-card">
+                        <form id="converterForm">
+                            <!-- URL Input -->
+                            <div class="mb-4">
+                                <label class="form-label">
+                                    <i class="bi bi-link-45deg me-1"></i>Wix Website URL
+                                </label>
+                                <input type="url" class="form-control form-control-lg" id="siteUrl" 
+                                       placeholder="https://yoursite.wixsite.com/mysite" required>
+                                <div class="form-text text-white-50">
+                                    Enter the full URL of your Wix website
+                                </div>
+                            </div>
+
+                            <!-- Basic Options -->
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Primary Folder (optional)</label>
+                                    <input type="text" class="form-control" id="blockPrimaryFolder" 
+                                           placeholder="e.g., mysite">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Wait Time (seconds)</label>
+                                    <input type="number" class="form-control" id="waitTime" value="3" min="1" max="30">
+                                </div>
+                            </div>
+
+                            <!-- Checkboxes -->
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="recursive">
+                                        <label class="form-check-label" for="recursive">
+                                            Scrape All Pages
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="darkWebsite">
+                                        <label class="form-check-label" for="darkWebsite">
+                                            Dark Theme
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="forceDownload">
+                                        <label class="form-check-label" for="forceDownload">
+                                            Force Re-download
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Advanced Options Accordion -->
+                            <div class="accordion mb-4" id="advancedOptions">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" 
+                                                data-bs-toggle="collapse" data-bs-target="#metaOptions">
+                                            <i class="bi bi-gear me-2"></i>Advanced Options (SEO & Meta Tags)
+                                        </button>
+                                    </h2>
+                                    <div id="metaOptions" class="accordion-collapse collapse" 
+                                         data-bs-parent="#advancedOptions">
+                                        <div class="accordion-body">
+                                            <div class="row">
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label">Page Title</label>
+                                                    <input type="text" class="form-control" id="metaTitle" 
+                                                           placeholder="My Website">
+                                                </div>
+                                                <div class="col-md-6 mb-3">
+                                                    <label class="form-label">Author</label>
+                                                    <input type="text" class="form-control" id="metaAuthor" 
+                                                           placeholder="Author Name">
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Description</label>
+                                                <textarea class="form-control" id="metaDescription" rows="2" 
+                                                          placeholder="Website description for SEO"></textarea>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Keywords</label>
+                                                <input type="text" class="form-control" id="metaKeywords" 
+                                                       placeholder="keyword1, keyword2, keyword3">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Social Image URL</label>
+                                                <input type="url" class="form-control" id="metaImage" 
+                                                       placeholder="https://example.com/image.png">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" 
+                                                data-bs-toggle="collapse" data-bs-target="#mapOptions">
+                                            <i class="bi bi-geo-alt me-2"></i>Map Configuration (Optional)
+                                        </button>
+                                    </h2>
+                                    <div id="mapOptions" class="accordion-collapse collapse" 
+                                         data-bs-parent="#advancedOptions">
+                                        <div class="accordion-body">
+                                            <div class="row">
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Latitude</label>
+                                                    <input type="text" class="form-control" id="mapLatitude" 
+                                                           placeholder="32.0879315">
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Longitude</label>
+                                                    <input type="text" class="form-control" id="mapLongitude" 
+                                                           placeholder="34.797246">
+                                                </div>
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Zoom Level</label>
+                                                    <input type="number" class="form-control" id="mapZoom" 
+                                                           value="12" min="1" max="20">
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Marker Popup Text</label>
+                                                <input type="text" class="form-control" id="mapPopup" 
+                                                       placeholder="<p>Your Location</p>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <button type="submit" class="btn btn-primary btn-lg w-100" id="convertBtn">
+                                <i class="bi bi-cloud-download me-2"></i>Start Conversion
+                            </button>
+                        </form>
+
+                        <!-- Progress Section -->
+                        <div class="progress-section" id="progressSection">
+                            <h5 class="mb-3">
+                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                Converting...
+                            </h5>
+                            <div class="progress mb-3">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                     style="width: 100%"></div>
+                            </div>
+                            <div class="log-container" id="logContainer">
+                                <!-- Log entries will be added here -->
+                            </div>
+                        </div>
+
+                        <!-- Result Section -->
+                        <div class="result-section" id="resultSection">
+                            <i class="bi bi-check-circle-fill success-icon"></i>
+                            <h4 class="mb-3">Conversion Complete!</h4>
+                            <p class="text-white-50 mb-4">Your website has been converted successfully.</p>
+                            <button class="btn btn-success btn-lg" id="downloadBtn">
+                                <i class="bi bi-download me-2"></i>Download ZIP File
+                            </button>
+                            <button class="btn btn-outline-light ms-2" id="newConversionBtn">
+                                <i class="bi bi-arrow-repeat me-2"></i>New Conversion
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="bi bi-speedometer2 feature-icon"></i>
+                        <h5 class="feature-title">Optimized Performance</h5>
+                        <p class="feature-desc">
+                            Removes Wix JavaScript and replaces with lightweight alternatives for faster loading.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="bi bi-image feature-icon"></i>
+                        <h5 class="feature-title">Local Assets</h5>
+                        <p class="feature-desc">
+                            Downloads and converts images to WebP format, and localizes all fonts.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <i class="bi bi-search feature-icon"></i>
+                        <h5 class="feature-title">SEO Ready</h5>
+                        <p class="feature-desc">
+                            Adds proper meta tags, Open Graph data, and Twitter cards for better SEO.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="mb-1">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                <strong>Important:</strong> Only use this tool for websites you own or have permission to download.
+            </p>
+            <p class="mb-0">
+                Based on <a href="https://github.com/timlg07/WixScraper" target="_blank" class="text-white">WixScraper</a> 
+                by timlg07
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentJobId = null;
+        
+        document.getElementById('converterForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const siteUrl = document.getElementById('siteUrl').value.trim();
+            if (!siteUrl) {
+                alert('Please enter a website URL');
+                return;
+            }
+            
+            // Collect all options
+            const options = {
+                blockPrimaryFolder: document.getElementById('blockPrimaryFolder').value.trim(),
+                wait: document.getElementById('waitTime').value,
+                recursive: document.getElementById('recursive').checked,
+                darkWebsite: document.getElementById('darkWebsite').checked,
+                forceDownload: document.getElementById('forceDownload').checked,
+                title: document.getElementById('metaTitle').value.trim(),
+                description: document.getElementById('metaDescription').value.trim(),
+                keywords: document.getElementById('metaKeywords').value.trim(),
+                author: document.getElementById('metaAuthor').value.trim(),
+                image: document.getElementById('metaImage').value.trim(),
+                mapLatitude: document.getElementById('mapLatitude').value.trim() || '0',
+                mapLongitude: document.getElementById('mapLongitude').value.trim() || '0',
+                mapZoom: document.getElementById('mapZoom').value || '12',
+                mapPopup: document.getElementById('mapPopup').value.trim()
+            };
+            
+            // Show progress, hide form
+            document.getElementById('convertBtn').disabled = true;
+            document.getElementById('progressSection').style.display = 'block';
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('logContainer').innerHTML = '';
+            
+            try {
+                // Start conversion
+                const response = await fetch('/convert', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        url: siteUrl,
+                        options: options
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                currentJobId = data.job_id;
+                
+                // Start listening for progress updates
+                const eventSource = new EventSource(`/stream/${currentJobId}`);
+                
+                eventSource.onmessage = function(event) {
+                    addLogEntry(event.data);
+                };
+                
+                eventSource.onerror = function() {
+                    eventSource.close();
+                    checkJobStatus();
+                };
+                
+                // Poll for completion
+                pollJobStatus();
+                
+            } catch (error) {
+                addLogEntry('Error: ' + error.message, true);
+                document.getElementById('convertBtn').disabled = false;
+            }
+        });
+        
+        function addLogEntry(message, isError = false) {
+            const logContainer = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry' + (isError ? ' error' : '');
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        async function pollJobStatus() {
+            if (!currentJobId) return;
+            
+            try {
+                const response = await fetch(`/status/${currentJobId}`);
+                const job = await response.json();
+                
+                if (job.status === 'completed') {
+                    showSuccess();
+                } else if (job.status === 'failed') {
+                    addLogEntry('Conversion failed: ' + (job.error || 'Unknown error'), true);
+                    document.getElementById('convertBtn').disabled = false;
+                } else {
+                    // Keep polling
+                    setTimeout(pollJobStatus, 2000);
+                }
+            } catch (error) {
+                console.error('Error checking status:', error);
+                setTimeout(pollJobStatus, 2000);
+            }
+        }
+        
+        async function checkJobStatus() {
+            if (!currentJobId) return;
+            
+            try {
+                const response = await fetch(`/status/${currentJobId}`);
+                const job = await response.json();
+                
+                if (job.status === 'completed') {
+                    showSuccess();
+                } else if (job.status === 'failed') {
+                    addLogEntry('Conversion failed: ' + (job.error || 'Unknown error'), true);
+                    document.getElementById('convertBtn').disabled = false;
+                }
+            } catch (error) {
+                console.error('Error checking status:', error);
+            }
+        }
+        
+        function showSuccess() {
+            document.getElementById('progressSection').style.display = 'none';
+            document.getElementById('resultSection').style.display = 'block';
+            document.getElementById('convertBtn').disabled = false;
+        }
+        
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            if (currentJobId) {
+                window.location.href = `/download/${currentJobId}`;
+            }
+        });
+        
+        document.getElementById('newConversionBtn').addEventListener('click', function() {
+            document.getElementById('resultSection').style.display = 'none';
+            document.getElementById('siteUrl').value = '';
+            currentJobId = null;
+        });
+    </script>
+</body>
+</html>

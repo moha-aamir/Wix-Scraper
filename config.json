@@ -1,0 +1,28 @@
+{
+    "site": "https://example.wixsite.com/example",
+    "blockPrimaryFolder": "example",
+    "wait": 3,
+    "recursive": "True",
+    "darkWebsite": "False",
+    "forceDownloadAgain": "False",
+    "metatags": {
+        "/example": {
+            "title": "Example | My Website",
+            "description": "This is an example Wix website converted to offline files.",
+            "keywords": "example, wix, converter, offline",
+            "canonical": "https://example.com/",
+            "image": "https://example.com/banner.png",
+            "author": "Author Name"
+        }
+    },
+    "mapData": {
+        "latitude": "32.0879315",
+        "longitude": "34.797246",
+        "zoom": "12",
+        "mapMarker": {
+            "latitude": "32.0879315",
+            "longitude": "34.797246",
+            "popup": "<p>Your Location</p>"
+        }
+    }
+}
