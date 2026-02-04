@@ -59,10 +59,9 @@ pip install --upgrade pip
 pip install -r requirements.txt
 pip install gunicorn
 
-echo -e "${YELLOW}[5/7] Installing Playwright browser...${NC}"
+echo -e "${YELLOW}[5/7] Installing Playwright browser (this may take 2-5 minutes)...${NC}"
 pip install playwright
-playwright install chromium
-playwright install-deps chromium 2>/dev/null || true
+PLAYWRIGHT_BROWSERS_PATH=/opt/wix-scraper/browsers playwright install chromium --with-deps 2>&1 | tail -5 || true
 
 echo -e "${YELLOW}[6/7] Creating system service...${NC}"
 cat > /etc/systemd/system/wixscraper.service << 'EOF'
@@ -74,6 +73,7 @@ After=network.target
 User=root
 WorkingDirectory=/opt/wix-scraper
 Environment="PATH=/opt/wix-scraper/venv/bin"
+Environment="PLAYWRIGHT_BROWSERS_PATH=/opt/wix-scraper/browsers"
 ExecStart=/opt/wix-scraper/venv/bin/gunicorn --workers 2 --bind 127.0.0.1:8080 --timeout 300 app:app
 Restart=always
 RestartSec=5
