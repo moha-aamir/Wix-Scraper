@@ -188,13 +188,22 @@ print_success "Python environment ready"
 ###########################################
 print_step "[7/8] 🌐 Installing Chromium browser (this takes 2-5 minutes)..."
 
-# Install playwright browsers
+# Install playwright browsers with full output
+echo "Downloading Chromium browser..."
 playwright install chromium
 
-# Install system deps for playwright (may require sudo, but we're root)
+# Verify installation
+if [ -d "/root/.cache/ms-playwright" ]; then
+    print_success "Browser installed"
+else
+    print_error "Browser installation may have failed, trying again..."
+    playwright install chromium
+fi
+
+# Install system deps for playwright
 playwright install-deps chromium 2>/dev/null || true
 
-print_success "Browser installed"
+print_success "Browser setup complete"
 
 ###########################################
 # STEP 8: Create systemd service
