@@ -53,12 +53,18 @@ echo ""
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${YELLOW}[2/8] 🔧 Installing system dependencies...${NC}"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-apt-get install -y -qq python3 python3-pip python3-venv git nginx curl wget unzip \
+apt-get install -y python3 python3-pip python3-venv git nginx curl wget unzip \
+    libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
+    libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
+    libgbm1 libasound2t64 libpango-1.0-0 libcairo2 libatspi2.0-0 \
+    libgtk-3-0 libx11-xcb1 libxcb1 libxcursor1 \
+    libxi6 libxtst6 fonts-liberation xdg-utils 2>/dev/null || \
+apt-get install -y python3 python3-pip python3-venv git nginx curl wget unzip \
     libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
     libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
     libgbm1 libasound2 libpango-1.0-0 libcairo2 libatspi2.0-0 \
-    libgtk-3-0 libgdk-pixbuf2.0-0 libx11-xcb1 libxcb1 libxcursor1 \
-    libxi6 libxtst6 fonts-liberation xdg-utils > /dev/null 2>&1
+    libgtk-3-0 libx11-xcb1 libxcb1 libxcursor1 \
+    libxi6 libxtst6 fonts-liberation xdg-utils
 echo -e "${GREEN}✓ Dependencies installed${NC}"
 echo ""
 
