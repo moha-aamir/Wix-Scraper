@@ -1,6 +1,30 @@
 # Wix to Offline Converter
 
-A simple web application that converts Wix websites to offline files using the [WixScraper](https://github.com/timlg07/WixScraper) tool.
+A simple web application that converts Wix websites to offline HTML files.
+
+## 🚀 One-Click VPS Installation
+
+**For Ubuntu/Debian VPS** - Just run this single command:
+
+```bash
+curl -sSL https://raw.githubusercontent.com/moha-aamir/Wix-Scraper/main/install.sh | sudo bash
+```
+
+That's it! After installation, access your app at `http://YOUR-SERVER-IP`
+
+### Management Commands
+
+After installation, you can use these commands:
+
+```bash
+wixscraper status     # Check if running
+wixscraper logs       # View live logs
+wixscraper restart    # Restart the app
+wixscraper update     # Update to latest version
+wixscraper uninstall  # Remove completely
+```
+
+---
 
 ## Features
 
@@ -14,7 +38,7 @@ A simple web application that converts Wix websites to offline files using the [
 ## Prerequisites
 
 - Python 3.8 or higher
-- Microsoft Edge browser (or modify the browser path in the code)
+- Playwright (Chromium browser)
 
 ## Installation
 
